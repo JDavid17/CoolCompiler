@@ -1,6 +1,6 @@
 # Pincha Bien ya
 .Object.copy:
-lw $t1, 12($fp)
+lw $t1, 4($sp)
 lw $a0, 4($t1)
 li $t4, 4
 mult $a0, $t4
@@ -8,10 +8,9 @@ mflo $a0
 addu $a0, $a0, 8
 li $v0, 9
 syscall
-lw $a1, 12($fp)
-sw $v0, ($sp)
-subu $sp, $sp, 4
+lw $a1, 4($sp)
 move $a3, $v0
+sw $a3, 4($sp)
 _copy.loop:
 lw $a2, 0($a1)
 sw $a2, 0($a3)
@@ -21,7 +20,6 @@ addiu $a3, $a3, 4
 beq $a0, $zero, _copy.end
 j _copy.loop
 _copy.end:
-
 jr $ra
 
 # Cambiado(Funciona)
@@ -78,59 +76,36 @@ jr $ra
 
 
 .IO.in_string:
+move $a3, $ra
+
 la $a0, buffer
 li $a1, 65536
 li $v0, 8
 syscall
 
-li $a1, 1
-# Calculate the lenght of the string
-_stringlength2.loop:
-lb $a2, 0($a0)
-beqz $a2, _stringlength2.end
-addiu $a0, $a0, 1
-addiu $a1, $a1, 1
-j _stringlength2.loop
-_stringlength2.end:
+sw $a0, 0($sp)
+subu $sp, $sp, 4
+jal .String.length
 
-subu $a1, $a1, 1
-
-# Temp
+addiu $sp, $sp, 4
+move $a2, $v0
+addiu $a2, $a2, -1
+move $a0, $v0
 li $v0, 9
-move $a0, $a1
 syscall
-
 move $v1, $v0
 la $a0, buffer
 _in_string.loop:
-beqz $a1, _in_string.end
-lb $t4, 0($a0)
-sb $t4, 0($v1)
+beqz $a2, _in_string.end
+lb $a1, 0($a0)
+sb $a1, 0($v1)
 addiu $a0, $a0, 1
 addiu $v1, $v1, 1
-addiu $a1, $a1, -1
+addiu $a2, $a2, -1
 j _in_string.loop
 _in_string.end:
-subu $v1, $v1, 1
 sb $zero, 0($v1)
-
-move $t2, $v0
-
-# Creating the new type String
-li $v0, 9
-li $a0, 12
-syscall
-
-la $t0, String
-sw $t0, ($v0)
-li $t0, 1
-sw $t0, 4($v0)
-move $a0, $t2
-sw $a0, 8($v0)
-
-sw $v0, ($sp)
-subu $sp, $sp, 4
-
+move $ra, $a3
 jr $ra
 
 # Pincha
@@ -284,67 +259,33 @@ subu $sp, $sp, 4
 
 jr $ra
 
-# Pincha
+#(Cambiado)
 .String.substr:
-
-# Cargando indices del substring
-lw $t4, 16($fp)
-lw $t4, 8($t4)
-lw $t3, 20($fp)
-lw $t3, 8($t3)
-
-move $a0, $t4
+lw $a0, -12($sp)
 addiu $a0, $a0, 1
 li $v0, 9
 syscall
 move $v1, $v0
-move $a2, $a0
-subu $a2, $a2, 1
-
-lw $a0, 12($fp)
-lw $a0, 8($a0)
-
-_stringsubstr.loop1:
-beqz $t3 _stringsubstr.end1
-lb $a1, 0($a0)
-beqz $a1 _substrexception
-addu $a0, $a0, 1
-subu $t3, $t3, 1
-j _stringsubstr.loop1
-_stringsubstr.end1:
-
-_stringsubstr.loop2:
-beqz $a2, _stringsubstr.end2
+lw $a0, -4($sp)
+lw $a1, -8($sp)
+add $a0, $a0, $a1
+lw $a2, -12($sp)
+_stringsubstr.loop:
+beqz $a2, _stringsubstr.end
 lb $a1, 0($a0)
 beqz $a1, _substrexception
 sb $a1, 0($v1)
 addiu $a0, $a0, 1
 addiu $v1, $v1, 1
 addiu $a2, $a2, -1
-j _stringsubstr.loop2
-_stringsubstr.end2:
+j _stringsubstr.loop
+_stringsubstr.end:
 sb $zero, 0($v1)
-
-move $t1, $v0
-li $v0, 9
-li $a0, 12
-syscall
-
-la $t0, String
-sw $t0, ($v0)
-
-li $t0, 1
-sw $t0, 4($v0)
-
-sw $t1, 8($v0)
-
-sw $v0, ($sp)
-subu $sp, $sp, 4
-
 jr $ra
 
+
 _substrexception:
-la $a0, index_error
+la $a0, strsubstrexception
 li $v0, 4
 syscall
 li $v0, 10
@@ -368,49 +309,6 @@ beq $a2, $a3, _stringcmp.equals
 _stringcmp.differents:
 li $v0, 0
 jr $ra
-
 _stringcmp.equals:
 li $v0, 1
 jr $ra
-
-# equal for str
-str_eq:
-lw $t0, 4($sp)
-addu $sp, $sp,4
-lw $t1, 4($sp)
-addu $sp, $sp, 4
-subu $t0, $t0, 1
-subu $t1, $t1, 1
-str_eq_loop:
-addi $t0, $t0, 1			# $t0 = $t1 + 1
-addi $t1, $t1, 1
-lb $t3, ($t0)
-lb $t4, ($t1)
-or $t5, $t3, $t4
-beqz $t5, success
-beqz $t3, fail
-beqz $t4, fail
-beq $t3, $t4, str_eq_loop
-fail:
-li $v0, 9
-li $a0, 12
-syscall
-la $t0, Bool
-sw $t0, ($v0)
-li $t0, 1
-sw $t0, 4($v0)
-li $t0, 0
-sw $t0, 8($v0)
-sw $v0, ($sp)
-subu $sp, $sp, 4
-jr $ra
-success:
-la $t0, Bool
-sw $t0, ($v0)
-li $t0, 1
-sw $t0, 4($v0)
-sw $t0, 8($v0)
-sw $v0, ($sp)
-subu $sp, $sp, 4
-jr $ra
-

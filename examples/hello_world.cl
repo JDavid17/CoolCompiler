@@ -1,9 +1,6 @@
-class Main inherits IO{
-
-  main(): Object {
-        case 1 of
-            n : Int => out_int(n);
-            n : Bool => out_string("Burro");
-        esac
-   };
+class Main inherits IO {
+    x : String;
+    main() : Object {
+        x <- "Hello World\n"
+    };
 };

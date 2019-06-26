@@ -585,7 +585,7 @@ class MIPS:
         self.mips_code.append("move $fp, $sp")
 
         self.mips_code.append("li $t0, 0")
-        for _ in range(len(node.local)):
+        for _ in range(len(node.scope)):
             self.mips_code.append("sw $t0, ($sp)")
             self.mips_code.append("subu $sp, $sp, 4")
 

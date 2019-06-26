@@ -1,9 +1,9 @@
 # Cool Compiler Project
 
 ## Integrantes
-- Joel David Hernández Cruz
-- Juan José Roque Cires
-- Julio César Sánchez García
+- [Joel David Hernández Cruz](https://github.com/JDavid17)
+- [Juan José Roque Cires](https://github.com/jr638091)
+- [Julio César Sánchez García](https://github.com/julioc1p)
 
 ## Content
 

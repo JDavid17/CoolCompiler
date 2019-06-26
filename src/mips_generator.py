@@ -189,6 +189,7 @@ class MIPS:
         self.mips_code.append("index_error: .asciiz \"Invalid index exception\"")
         self.mips_code.append("void_error: .asciiz \"Objects must be inizializated before use exception\"")
         self.mips_code.append("case_error: .asciiz \"Case expression no match exception\"")
+        self.mips_code.append("void_str: .asciiz \"\"")
         for s_data in self.dotData:
             self.mips_code.append("msg{}: .asciiz \"{}\"".format(pos, s_data))
             pos += 1
@@ -607,21 +608,21 @@ class MIPS:
         self.mips_code.append("subu $sp, $sp, 4")
 
     @visitor.when(cil_node.CILInteger)
-    def visit(self, node: cil_node.CILInteger):
+    def visit(self, node: cil_node.CILInteger):        
         self.mips_code.append("li $v0, 9")
         self.mips_code.append("li $a0, {}".format(12))
         self.mips_code.append("syscall")
-
+        
         self.mips_code.append(f"la $t0, Int")
         self.mips_code.append("sw $t0, ($v0)")
-
+        
         self.mips_code.append("li $t0, 1")
         self.mips_code.append("sw $t0, 4($v0)")
-
+        
         self.mips_code.append("li $a0, {}".format(node.value))
         self.mips_code.append("sw $a0, 8($v0)")
         self.mips_code.append("sw $v0, ($sp)")
-
+        
         self.mips_code.append("subu $sp, $sp, 4")
 
     @visitor.when(cil_node.CILBoolean)
@@ -791,13 +792,13 @@ class MIPS:
     @visitor.when(cil_node.CILAssignment)
     def visit(self, node: cil_node.CILAssignment):
         if node.dest in self.arguments:
+            self.mips_code.append("lw $t0, 4($sp)")
             index = self.arguments.index(node.dest)
             self.mips_code.append(f"lw $t0, {12 + 4*index}($fp)")
         elif node.dest in self.vars:
+            self.mips_code.append("lw $t0, 4($sp)")
             index = self.vars.index(node.dest)
-            self.mips_code.append(f"lw $t0, -{4*index}($fp)")
-        self.mips_code.append("lw $t1, 4($sp)")
-        self.mips_code.append("sw $t1, ($t0)")
+            self.mips_code.append(f"sw $t0, -{4*index}($fp)")
 
     @visitor.when(cil_node.CILFormal)
     def visit(self, node: cil_node.CILFormal):
@@ -833,3 +834,21 @@ class MIPS:
         # self.mips_code.append("li $a0, {}".format(node.value))
         self.mips_code.append("sw $t1, 8($v0)")
         self.mips_code.append("sw $v0, 4($sp)")
+
+    @visitor.when(cil_node.CILNewString)
+    def visit(self, node: cil_node.CILNewString):
+        self.mips_code.append("li $v0, 9")
+        self.mips_code.append("li $a0, 12")
+        self.mips_code.append("syscall")
+
+        self.mips_code.append(f"la $t0, String")
+        self.mips_code.append("sw $t0, ($v0)")
+
+        self.mips_code.append("li $t0, 1")
+        self.mips_code.append("sw $t0, 4($v0)")
+
+        self.mips_code.append("la $a0, void_str")
+        self.mips_code.append("sw $a0, 8($v0)")
+        self.mips_code.append("sw $v0, ($sp)")
+
+        self.mips_code.append("subu $sp, $sp, 4")

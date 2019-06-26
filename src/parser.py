@@ -398,7 +398,8 @@ class CoolParser(object):
         Error rule for Syntax Errors handling and reporting.
         """
         if parse is None:
-            print("Error! Unexpected end of input!")
+            error = "Parser Error Try to parse None"
+            self.error_list.append(error)
         else:
             error = "Syntax error! Line: {}, position: {}, character: {}, type: {}".format(
                 parse.lineno, parse.lexpos, parse.value, parse.type)

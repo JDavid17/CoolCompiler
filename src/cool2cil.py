@@ -289,14 +289,14 @@ class Cool2cil:
         args = []
         var = []
         codes = []
-        tmp = self.visit(node.instance, scope)
         for item in node.arguments:
             tmp = self.visit(item, scope)
             codes += tmp[1]
             if item.static_type.name in ['Int', 'Bool']:
                 codes += [cil_node.CILDynamicDispatch(0, self._dispatch(item.static_type.name, "copy"))]
-        codes.append(tmp[1])
-        codes.append(cil_node.CILStaticDispatch(len(node.arguments), scope.classname, node.method))
+        tmp = self.visit(node.instance, scope)
+        codes += tmp[1]
+        codes.append(cil_node.CILStaticDispatch(len(node.arguments), node.dispatch_type, node.method))
         return var, codes
 
     @visitor.when(ast.ClassAttribute)
@@ -305,7 +305,9 @@ class Cool2cil:
             tmp = self.visit(node.init_expr, scope)
             return tmp[0], [cil_node.CILAttribute(node.name, tmp[1], tmp[0])]
         if node.static_type.name in ['String', 'Int', 'Bool']:
-            return [], [cil_node.CILAttribute(node.name, [cil_node.CILInteger(0)], [])]
+            return [], [cil_node.CILAttribute(node.name, [
+                cil_node.CILInteger(0) if node.static_type.name != 'String' else cil_node.CILNewString() 
+            ], [])]
         return [], []
 
     @visitor.when(ast.NewObject)
@@ -415,13 +417,15 @@ class Cool2cil:
             codes += tmp[1]
             codes.append(cil_node.CILFormal(new_name))
         elif node.static_type.name in ['Bool', 'Int', 'String']:
-            c = self.constructors[node.static_type.name]
-            t = []
-            for i in c:
-                t += i.exp_code
-                t.append(cil_node.CILInitAttr(self._att_offset(node.static_type.name, i.offset),i.scope))
+            # c = self.constructors[node.static_type.name]
+            # t = []
+            # for i in c:
+            #     t += i.exp_code
+            #     t.append(cil_node.CILInitAttr(self._att_offset(node.static_type.name, i.offset),i.scope))
             codes = [
-                cil_node.CILNew(t, node.static_type, self.calc_static(node.static_type.name), []), cil_node.CILFormal(new_name)
+                cil_node.CILNew([], node.static_type.name, self.calc_static(node.static_type.name), []), cil_node.CILFormal(new_name)
+            ] if node.static_type.name != 'String' else [
+                cil_node.CILNewString(), cil_node.CILFormal(new_name)
             ]
         else:
             codes = [cil_node.CILFormal(new_name, False)]

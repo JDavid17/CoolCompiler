@@ -18,7 +18,7 @@ Development Status.
 
 
 ### Lexer & Parser
-El proyecto esta desarrollado en python, para el desarrollo del lexer y el parser usamos la herramienta de parsing **ply**, que es una implementacion de **Lex** y **Yac** originales de **C** en python.
+El proyecto esta desarrollado en python, para el desarrollo del lexer y el parser usamos la herramienta de parsing **ply**, que es una implementación de **Lex** y **Yac** originales de **C**, en python.
 
 #### Grámatica
 La Grámatica usada, tiene recursión extrema izquierda, los problemas de ambiguedad se resuelven luego en el parser, definiendo ciertas reglas de presedencia para los tokens. Ejemplo
@@ -28,7 +28,7 @@ precedence = (
      ('left', 'TIMES', 'DIVIDE'),
  )
  # Esta declaracion define que PLUS/MINUS tienen el mismo nivel de presedencia y son asociativos a la izquierda, al igual que TIMES/DIVIDE. Dentro de esta declaracion los tokens son ordenados de baja a alta presedencia, luego esta declaracion definiria que TIMES/DIVIDE tienen un mayor nivel de presedencia que PLUS/MINUS
-``` 
+```
 ```Coo
 <program> 	 			::= <classes>
 

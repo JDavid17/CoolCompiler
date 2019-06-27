@@ -202,8 +202,8 @@ class Cool2cil:
                     'body': i.body
                 }}
                 self.replace(m, scope.getType(j.name))
+
         for i in list(t.keys())[1:]:
-            self.constructors[i] = []
             meths = []
             for m in t[i].methods:
                 meths.append(list(m.keys())[0])
@@ -213,25 +213,48 @@ class Cool2cil:
             t1 = self.tree[t[i].name]
             self.dtpe.append(cil_node.DotType(t[i].name, attrs, meths, t1[0], t1[1]))
 
-        self.constructors['Int'].append(cil_node.CILAttribute('#', [cil_node.CILInteger(0)], []))
-        self.constructors['Bool'].append(cil_node.CILAttribute('#', [cil_node.CILBoolean(0)], []))
-        self.constructors['String'].append(cil_node.CILAttribute('#', [cil_node.CILString(0)], []))
         self.dtpe[1].attributes.append('#')
         self.dtpe[2].attributes.append('#')
         self.dtpe[3].attributes.append('#')
+        # m = None
+        # classofp = []
+        # for i in node.classes:
+        #     if i.name != 'Main':
+        #         classofp.append(i)
+        #     else:
+        #         m = i
+        # classofp.append(m)
+        # node.classes = classofp
         for i in node.classes:
             self.visit(i, None)
+        pass
 
     @visitor.when(ast.Class)
     def visit(self, node: ast.Class, scope: CILScope):
+        self.constructors[node.name] = ast.ClassMethod(node.name,[],node.name,ast.Block([]))
+        if node.parent not in ['IO', 'Object']:
+            self.constructors[node.name].body.expr_list += self.constructors[node.parent].body.expr_list[:-1]
         attrs = filter(lambda x: type(x) is ast.ClassAttribute, node.features)
         attrs = list(attrs)
         for attr in attrs:
-            self.constructors[node.name] += (self.visit(attr, CILScope(node.name))[1])
+            self.visit(attr, CILScope(node.name))
         methods = filter(lambda x: type(x) is ast.ClassMethod, node.features)
         methods = list(methods)
+        self.constructors[node.name].body.expr_list.append(ast.Self())
+        methods.append(self.constructors[node.name])
         for method in methods:
             self.visit(method, CILScope(node.name))
+
+    @visitor.when(ast.ClassAttribute)
+    def visit(self, node: ast.ClassAttribute, scope):
+        if node.init_expr:
+            self.constructors[scope.classname].body.expr_list.append(ast.Assignment(ast.Object(node.name), node.init_expr))
+        elif node.static_type.name == 'Int':
+            self.constructors[scope.classname].body.expr_list.append(ast.Assignment(ast.Object(node.name), ast.Integer(0)))
+        elif node.static_type.name == 'Bool':
+            self.constructors[scope.classname].body.expr_list.append(ast.Assignment(ast.Object(node.name), ast.Boolean(False)))
+        elif node.static_type.name == 'String':
+            self.constructors[scope.classname].body.expr_list.append(ast.Assignment(ast.Object(node.name), ast.String("")))
 
     @visitor.when(ast.ClassMethod)
     def visit(self, node: ast.ClassMethod, scope: CILScope):
@@ -299,27 +322,9 @@ class Cool2cil:
         codes.append(cil_node.CILStaticDispatch(len(node.arguments), node.dispatch_type, node.method))
         return var, codes
 
-    @visitor.when(ast.ClassAttribute)
-    def visit(self, node: ast.ClassAttribute, scope):
-        if node.init_expr:
-            tmp = self.visit(node.init_expr, scope)
-            return tmp[0], [cil_node.CILAttribute(node.name, tmp[1], tmp[0])]
-        if node.static_type.name in ['String', 'Int', 'Bool']:
-            return [], [cil_node.CILAttribute(node.name, [
-                cil_node.CILInteger(0) if node.static_type.name != 'String' else cil_node.CILNewString() 
-            ], [])]
-        return [], []
-
     @visitor.when(ast.NewObject)
     def visit(self, node: ast.NewObject, scope):
-        c = self.constructors[node.static_type.name]
-        t = []
-        att = []
-        for i in c:
-            t += i.exp_code
-            t.append(cil_node.CILInitAttr(self._att_offset(node.static_type.name, i.offset), i.scope))
-            att += i.scope
-        return [], [cil_node.CILNew(t, node.type, self.calc_static(node.static_type.name), att)]
+        return [], [cil_node.CILNew(node.type, self.calc_static(node.static_type.name))]
 
     @visitor.when(ast.Integer)
     def visit(self, node: ast.Integer, scope):
@@ -417,13 +422,8 @@ class Cool2cil:
             codes += tmp[1]
             codes.append(cil_node.CILFormal(new_name))
         elif node.static_type.name in ['Bool', 'Int', 'String']:
-            # c = self.constructors[node.static_type.name]
-            # t = []
-            # for i in c:
-            #     t += i.exp_code
-            #     t.append(cil_node.CILInitAttr(self._att_offset(node.static_type.name, i.offset),i.scope))
             codes = [
-                cil_node.CILNew([], node.static_type.name, self.calc_static(node.static_type.name), []), cil_node.CILFormal(new_name)
+                cil_node.CILInteger(0), cil_node.CILFormal(new_name)
             ] if node.static_type.name != 'String' else [
                 cil_node.CILNewString(), cil_node.CILFormal(new_name)
             ]

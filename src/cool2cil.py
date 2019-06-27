@@ -27,7 +27,7 @@ class CILScope:
 
     def get_real_name(self, var_name: str):
         for name in self.vars:
-            if var_name in name:
+            if var_name == name.split('@')[0]:
                 return name
         if self.parentScope:
             return self.parentScope.get_real_name(var_name)

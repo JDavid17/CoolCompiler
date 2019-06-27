@@ -144,7 +144,7 @@ class MIPS:
                      "lw $a3, 4($a0)\n" \
                      "lw $a0, ($a1)\n" \
                      "lw $a1, 4($a1)\n" \
-                     "sge $t0, $a0, $a2\n" \
+                     "sge $t0, $a2, $a0\n" \
                      "sle $t1, $a1, $a3\n" \
                      "and $a0, $t0, $t1\n" \
                      "sw $a0, ($sp)\n" \
@@ -487,6 +487,7 @@ class MIPS:
 
     @visitor.when(cil_node.CILCase)
     def visit(self, node: cil_node.CILCase):
+        self.mips_code.append(f"move $t0, $t0 # Case")
         self.visit(node.instance[0])
         self.mips_code.append(f"la $t0, void_error")
         self.mips_code.append(f"sw $t0, ($sp)")
@@ -505,7 +506,7 @@ class MIPS:
 
     @visitor.when(cil_node.CILAction)
     def visit(self, node: cil_node.CILAction):
-        self.mips_code.append(f"la $a0, {node.ctype}")
+        self.mips_code.append(f"la $a0, {node.ctype} #action {node.ctype}")
         self.mips_code.append("lw $t0, 4($sp)")
         self.mips_code.append("sw $ra, ($sp)")
         self.mips_code.append("subu $sp, $sp, 4")
@@ -566,7 +567,7 @@ class MIPS:
         self.mips_code.append("li $a0, {}".format(4 * (node.size + 2)))
         self.mips_code.append("syscall")
         # $v0 contains address of allocated memory
-        self.mips_code.append("sw $v0, 0($sp)")
+        self.mips_code.append("sw $v0, 0($sp) # new Object")
         self.mips_code.append("subu $sp, $sp ,4")
 
         self.mips_code.append(f"la $t0, {node.ctype}")
@@ -733,7 +734,7 @@ class MIPS:
         self.arguments = [node.params[0]] + tmp
 
         self.mips_code.append("{}:".format(node.name))
-        self.mips_code.append("li $t0, 0")
+        self.mips_code.append(f"li $t0, 0 #{node.name}")
         for _ in range(len(node.local)):
             self.mips_code.append("sw $t0, ($sp)")
             self.mips_code.append("subu $sp, $sp, 4")

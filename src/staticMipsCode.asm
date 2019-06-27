@@ -57,7 +57,8 @@ lw $t0, 16($fp)
 lw $a0, 8($t0)
 syscall
 
-sw $a0, ($sp)
+lw $t0, 12($fp)
+sw $t0, ($sp)
 subu $sp, $sp, 4
 
 jr $ra
@@ -69,7 +70,8 @@ lw $t0, 16($fp)
 lw $a0, 8($t0)
 syscall
 
-sw $a0, ($sp)
+lw $t0, 12($fp)
+sw $t0, ($sp)
 subu $sp, $sp, 4
 
 jr $ra

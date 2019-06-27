@@ -488,7 +488,8 @@ class MIPS:
     @visitor.when(cil_node.CILCase)
     def visit(self, node: cil_node.CILCase):
         self.mips_code.append(f"move $t0, $t0 # Case")
-        self.visit(node.instance[0])
+        for i in node.instance:
+            self.visit(i)
         self.mips_code.append(f"la $t0, void_error")
         self.mips_code.append(f"sw $t0, ($sp)")
         self.mips_code.append(f"lw $t0, 4($sp)")

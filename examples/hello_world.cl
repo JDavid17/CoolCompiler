@@ -1,4 +1,117 @@
-class Main inherits IO {
+-- example of static and dynamic type differing for a dispatch
+
+class Book inherits IO {
+    title : String;
+    author : String;
+
+    initBook(title_p : String, author_p : String) : Book {
+        {
+            title <- title_p;
+            author <- author_p;
+            self;
+        }
+    };
+
+    print() : Book {
+        {
+            out_string("title:      ").out_string(title).out_string("\n");
+            out_string("author:     ").out_string(author).out_string("\n");
+            self;
+        }
+    };
+};
+
+class Article inherits Book {
+    per_title : String;
+
+    initArticle(title_p : String, author_p : String,
+		per_title_p : String) : Article {
+        {
+            initBook(title_p, author_p);
+            per_title <- per_title_p;
+            self;
+        }
+    };
+
+    print() : Book {
+        {
+	    self@Book.print();
+            out_string("periodical:  ").out_string(per_title).out_string("\n");
+            self;
+        }
+    };
+};
+
+class BookList inherits IO {
+    (* Since abort "returns" type Object, we have to add
+       an expression of type Bool here to satisfy the typechecker.
+       This code is unreachable, since abort() halts the program.
+    *)
+    isNil() : Bool { { abort(); true; } };
+
+    cons(hd : Book) : Cons {
+        (let new_cell : Cons <- new Cons in
+            new_cell.init(hd,self)
+        )
+    };
+
+    (* Since abort "returns" type Object, we have to add
+       an expression of type Book here to satisfy the typechecker.
+       This code is unreachable, since abort() halts the program.
+    *)
+    car() : Book { { abort(); new Book; } };
+
+    (* Since abort "returns" type Object, we have to add
+       an expression of type BookList here to satisfy the typechecker.
+       This code is unreachable, since abort() halts the program.
+    *)
+    cdr() : BookList { { abort(); new BookList; } };
+
+    print_list() : Object { abort() };
+};
+
+class Cons inherits BookList {
+    xcar : Book;  -- We keep the car and cdr in attributes.
+    xcdr : BookList; -- Because methods and features must have different names,
+    -- we use xcar and xcdr for the attributes and reserve
+    -- car and cdr for the features.
+
+    isNil() : Bool { false };
+
+    init(hd : Book, tl : BookList) : Cons {
+        {
+            xcar <- hd;
+            xcdr <- tl;
+            self;
+        }
+    };
+
+    car() : Book { xcar };
+
+    cdr() : BookList { xcdr };
+
+    print_list() : Object {
+        {
+            case xcar.print() of
+                dummy : Book => out_string("- dynamic type was Book -\n");
+                dummy : Article => out_string("- dynamic type was Article -\n");
+            esac;
+            xcdr.print_list();
+        }
+    };
+};
+
+class Nil inherits BookList {
+    isNil() : Bool { true };
+
+    print_list() : Object { true };
+};
+
+
+class Main {
+
+    books : BookList;
+
     main() : Object {
         out_int(1)
     };

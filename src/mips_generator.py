@@ -427,9 +427,10 @@ class MIPS:
 
         self.mips_code.append("lw $a0, 8($t0)")
 
-        self.mips_code.append("li $a2, 0")
-
-        self.mips_code.append("subu $a1, $a2, $a0")
+        # self.mips_code.append("nor $t1, $a0, $a0")
+        # self.mips_code.append("li $a1, 0")
+        self.mips_code.append("negu $a0, $a0")
+        # self.mips_code.append("addi $t1, $t1, 1")
 
         self.mips_code.append("li $v0, 9")
         self.mips_code.append("li $a0, 12")
@@ -441,7 +442,7 @@ class MIPS:
         self.mips_code.append("li $t0, 1")
         self.mips_code.append("sw $t0, 4($v0)")
 
-        self.mips_code.append("sw $a1, 8($v0)")
+        self.mips_code.append("sw $a0, 8($v0)")
         self.mips_code.append("sw $v0, ($sp)")
 
         self.mips_code.append("subu $sp, $sp, 4")

@@ -113,7 +113,7 @@ class MIPS:
     def __init__(self, CILObject):
         self.dotType = CILObject.dtpe
         self.dotCode = CILObject.code
-        self.dotData = CILObject.data
+        self.dotData = list(set(CILObject.data))
         self.CILObject = CILObject
         c = CILObject.constructors['Main']
         t = []

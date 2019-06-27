@@ -153,32 +153,19 @@ Todo..
 #### Cool -> Cil
 Todo...
 
-#### Cil -> 
-Todo...
+#### Cil -> Mips
+La generación de mips se divide en 3 partes fundamentales:
+1. Crear el constructor de la clase Main.
+2. **dotCode** donde se encuentran todo el código del programa
+3. **dotData** donde se encuentran todas las definiciones de los strings 
 
-## Compilando su proyecto
+En **dotCode**
 
-Si es necesario compilar su proyecto, incluya todas las instrucciones necesarias en el archivo [`/src/makefile`](/src/makefile) que está en esta misma carpeta.
-Durante la evaluación su proyecto se compilará ejecutando la siguiente secuencia:
-
-```bash
-$ cd source
-$ make clean
-$ make
-```
-
-## Ejecutando su proyecto
-
-Incluya en el archivo [`/src/coolc.sh`](/src/compile.sh) todas las instrucciones que hacen falta para lanzar su compilador. Recibirá como entrada un archivo con extensión `.cl` y debe generar como salida un archivo `.mips` cuyo nombre será el mismo que la entrada.
-
-Para lanzar el compilador, se ejecutará la siguiente instrucción:
+## Ejecutando el proyecto
 
 ```bash
-$ cd source
-$ ./compile.sh <input_file.cl>
+$ ./coolc.sh <input_file.cl>
 ```
-
-> **NOTA:** Su proyecto será ejecutado y evaluado en un entorno **Linux**. Si usted desarrolló en un entorno diferente, asegúrese de que es posible ejecutar su proyecto en Linux. En el caso de **.NET**, vea las instrucciones para portar su proyecto a **.NET Core** (la versión Open Source) [aquí](https://.net.microsoft.com/) y asegúrese de probar que funciona en Linux. **NO es posible** entregar su proyecto en forma de una solución que necesite abrirse con Visual Studio para funcionar.
 
 ## Sobre el funcionamiento del compilador
 
@@ -217,8 +204,3 @@ El campo `<tipo_de_error>` será alguno entre:
     - tipo referenciado pero no definido.
 - `AttributeError`: se reporta cuando un atributo o método se referencia pero no está definido.
 - `SemanticError`: cualquier otro error semántico.
-
-## Sobre la Implementación del Compilador de COOL
-
-Para la implementación del compilador Ud. debe utilizar una herramienta generadora de analizadores
-lexicográficos y sintácticos. Puede utilizar la que sea de su preferencia.
